@@ -1,0 +1,13 @@
+.pio/
+.pioenvs/
+.piolibdeps/
+.vscode/
+*.log
+__pycache__/
+*.pyc
+*.bin
+*.elf
+
+# Local credentials and device inventory are private.
+sensor_secrets.h
+/DEVICES.md
