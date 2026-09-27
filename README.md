@@ -97,7 +97,7 @@ configuration and ID above, it is `home/sensors/living-room/state`.
 
 Messages use QoS 1 and the retain flag. A retained value may be older than
 the current sensor reading. A fresh reading is published after a successful
-MQTT connection and then every five minutes. Invalid DHT22 readings are
+MQTT connection and then every minute. Invalid DHT22 readings are
 skipped.
 
 ## Local files and public repositories
