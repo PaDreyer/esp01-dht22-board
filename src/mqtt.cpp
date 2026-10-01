@@ -7,6 +7,7 @@
 
 // The board connects the DHT22 data line to ESP-01S GPIO2.
 constexpr uint8_t kDhtPin = 2;
+constexpr unsigned long kDhtReadSpacingMs = 2100UL;
 constexpr unsigned long kMeasurementIntervalMs = 1UL * 60UL * 1000UL;
 constexpr unsigned long kWifiRetryMs = 10UL * 1000UL;
 constexpr unsigned long kMqttRetryMs = 5UL * 1000UL;
@@ -19,6 +20,7 @@ MQTTClient mqttClient(256);
 String clientId;
 String stateTopic;
 unsigned long lastMeasurementMs = 0;
+unsigned long lastDhtReadMs = 0;
 unsigned long lastWifiAttemptMs = 0;
 unsigned long lastMqttAttemptMs = 0;
 unsigned long lastPublishAttemptMs = 0;
@@ -26,8 +28,25 @@ float lastHumidity = NAN;
 float lastTemperatureC = NAN;
 bool publishPending = false;
 bool mqttAttempted = false;
+bool dhtReadOccurred = false;
+
+void waitForDhtRead() {
+  if (dhtReadOccurred) {
+    const unsigned long elapsed = millis() - lastDhtReadMs;
+    if (elapsed < kDhtReadSpacingMs) {
+      delay(kDhtReadSpacingMs - elapsed);
+    }
+  }
+  lastDhtReadMs = millis();
+  dhtReadOccurred = true;
+}
 
 void readMeasurement() {
+  // The AM2302 returns the previous measurement. Prime it, then use a
+  // second physical read after the sensor and DHT library are ready.
+  waitForDhtRead();
+  dht.readHumidity();
+  waitForDhtRead();
   const float humidity = dht.readHumidity();
   const float temperatureC = dht.readTemperature();
   lastMeasurementMs = millis();
@@ -77,7 +96,7 @@ void publishMeasurement() {
 
 void setup() {
   dht.begin();
-  delay(2000);  // Allow the DHT22 to stabilize after power-up.
+  delay(kDhtReadSpacingMs);  // Wait more than 2 s after sensor power-up.
   readMeasurement();
 
   clientId = String(F("esp01-")) + SENSOR_ID;

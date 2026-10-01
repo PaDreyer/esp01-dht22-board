@@ -2,7 +2,7 @@
 
 Arduino firmware for an ESP-01S on the blue ESP-01S/DHT22 sensor board. It
 publishes temperature and relative humidity to MQTT at startup, after a
-reconnection, and every five minutes while running.
+reconnection, and every minute while running.
 
 <img src="docs/esp01s-dht22-board.png" alt="ESP-01S DHT22 sensor board" width="400">
 
@@ -99,6 +99,11 @@ Messages use QoS 1 and the retain flag. A retained value may be older than
 the current sensor reading. A fresh reading is published after a successful
 MQTT connection and then every minute. Invalid DHT22 readings are
 skipped.
+
+The firmware waits 2.1 seconds after startup before contacting the AM2302.
+For each measurement, it discards the first sensor read and uses a second read
+at least 2.1 seconds later, following the [AM2302 timing guidance](https://www.aosong.com/uploadfiles/2025/04/20250417105409216.pdf).
+The board stays powered; the firmware does not use deep sleep.
 
 ## Local files and public repositories
 
